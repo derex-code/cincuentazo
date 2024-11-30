@@ -1,5 +1,9 @@
 package org.example.cincuentazo;
-
+/**
+ * Main Class represent the inicializacion of the app.
+ * @author Olman Alexander Silva 2343025-2724
+ * @version 1.0
+ */
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
