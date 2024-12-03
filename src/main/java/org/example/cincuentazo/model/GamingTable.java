@@ -8,6 +8,6 @@ package org.example.cincuentazo.model;
 
 public class GamingTable {
     private int suma;
-    private int deckPlayed[];
+    //private int deckPlayed[];
     public GamingTable() {}
 }
