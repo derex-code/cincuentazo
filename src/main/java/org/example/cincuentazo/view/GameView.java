@@ -5,7 +5,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import org.example.cincuentazo.controller.GameController;
 
 import java.io.IOException;
 
@@ -16,15 +15,11 @@ import java.io.IOException;
  */
 
 public class GameView extends Stage {
-
-    private GameController gameController;
-
     public GameView() throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/org/example/cincuentazo/game-view.fxml")
         );
         Parent root = loader.load();
-        this.gameController = loader.getController();
         this.setTitle("CINCUENTAZO GAME");
         Scene scene = new Scene(root);
         this.setScene(scene);
@@ -41,11 +36,6 @@ public class GameView extends Stage {
             return GameView.GameViewHolder.INSTANCE;
         }
     }
-
-    public GameController getGameController() {
-        return this.gameController;
-    }
-
 
     private static class GameViewHolder {
         private static GameView INSTANCE;
