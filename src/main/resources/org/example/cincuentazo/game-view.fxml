@@ -88,7 +88,7 @@
             <Font name="System Bold" size="15.0" />
          </font>
       </Label>
-      <TextField fx:id="textFieldSuma" layoutX="291.0" layoutY="367.0" />
+      <TextField fx:id="textFieldSuma" alignment="CENTER" layoutX="291.0" layoutY="367.0" />
       <Button fx:id="starGameButton" layoutX="338.0" layoutY="139.0" mnemonicParsing="false" onAction="#onActionStarGameButton" text="Star Game" />
    </children>
 </Pane>
