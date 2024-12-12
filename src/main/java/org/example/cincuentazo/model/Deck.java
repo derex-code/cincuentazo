@@ -1,8 +1,5 @@
 package org.example.cincuentazo.model;
 
-import javafx.scene.layout.TilePane;
-
-import javax.smartcardio.Card;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,22 +54,6 @@ public class Deck {
     public boolean isEmpty() {
         return pokerCards.isEmpty();
     }
-
-//    /**
-//     * Crea una representación visual del mazo usando un TilePane.
-//     *
-//     * @return TilePane con las cartas distribuidas.
-//     */
-//    public TilePane renderDeck() {
-//        TilePane tilePane = new TilePane();
-//        tilePane.setHgap(10);
-//        tilePane.setVgap(10);
-//
-//        for (Cards card : pokerCards) {
-//            tilePane.getChildren().add(card);
-//        }
-//        return tilePane;
-//    }
 
     /**
      * Return the cards in the deck
