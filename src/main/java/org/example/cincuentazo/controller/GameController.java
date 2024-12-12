@@ -34,6 +34,8 @@ public class GameController {
     public GridPane playerMachine2;
     public GridPane playerMachine1;
     public GridPane gridPaneTable;
+    public TextField textFieldSuma;
+
 
     private List<Player> players = new ArrayList<>();
     private Player currentPlayer;
@@ -41,6 +43,11 @@ public class GameController {
     private int numberOfMachinePlayers;
 
     private int tableSum = 0; // acumulador de la suma de la mesa
+
+    public void sumStatus(){
+        textFieldSuma.setEditable(false);
+        textFieldSuma.setText(String.valueOf(tableSum));
+    }
 
     @FXML
     public void onActionStarGameButton(ActionEvent event) {
@@ -117,6 +124,9 @@ public class GameController {
 
         //****
         displayUserCards();
+
+        //Estado de la suma
+        sumStatus();
     }
 
     private void displayMachineCards() {
@@ -124,30 +134,30 @@ public class GameController {
         playerMachine1.add(machine1Card, 0, 0);
 
 
-//        ImageView imageView1 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
-//        imageView1.setFitHeight(85);
-//        imageView1.setFitWidth(140);
-//        playerMachine1.add(imageView1, 0, 0);
+        ImageView imageView1 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
+        imageView1.setFitHeight(85);
+        imageView1.setFitWidth(140);
+        playerMachine1.add(imageView1, 0, 0);
 
         if (numberOfMachinePlayers > 1) {
 
             Cards machine2Card = new Cards("", "", 90, 140);
             playerMachine2.add(machine2Card, 0, 0);
 
-//            ImageView imageView2 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
-//            imageView2.setFitHeight(85);
-//            imageView2.setFitWidth(153);
-//            playerMachine2.add(imageView2, 0, 0);
+            ImageView imageView2 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
+            imageView2.setFitHeight(85);
+            imageView2.setFitWidth(153);
+            playerMachine2.add(imageView2, 0, 0);
         }
 
         if (numberOfMachinePlayers > 2) {
             Cards machine3Card = new Cards("", "", 90, 140);
             playerMachine3.add(machine3Card, 0, 0);
 
-//            ImageView imageView3 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
-//            imageView3.setFitHeight(97);
-//            imageView3.setFitWidth(153);
-//            playerMachine3.add(imageView3, 0, 0);
+            ImageView imageView3 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
+            imageView3.setFitHeight(97);
+            imageView3.setFitWidth(153);
+            playerMachine3.add(imageView3, 0, 0);
         }
     }
 
@@ -190,6 +200,7 @@ public class GameController {
             user.getHand().remove(card); // Quitar carta de la mano del usuario
             tableSum += card.getValue();
 
+
             Platform.runLater(() -> {
                 // Mostrar carta en la mesa
 
@@ -203,6 +214,9 @@ public class GameController {
 
                 // Actualizar cartas del usuario
                 displayUserCards();
+
+                //Estado de la suma
+                sumStatus();
 
                 // Verificar si el juego termina
                 checkGameEnd();
@@ -269,6 +283,9 @@ public class GameController {
 //                cardImage.setFitHeight(100);
 //                cardImage.setFitWidth(90);
 //                gridPaneTable.add(cardImage, 0, 0);
+
+                //Estado de la suma
+                sumStatus();
 
                 //***
                 //Verificar si el juego termina
