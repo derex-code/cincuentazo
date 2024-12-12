@@ -54,6 +54,10 @@ public class Deck {
         return pokerCards.get(0); // Retorna la primera carta sin removerla
     }
 
+    public boolean isEmpty() {
+        return pokerCards.isEmpty();
+    }
+
 //    /**
 //     * Crea una representación visual del mazo usando un TilePane.
 //     *

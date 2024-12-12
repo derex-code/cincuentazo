@@ -60,10 +60,15 @@ public class GameController {
 
 
         // Mostrar la carta boca abajo en la mesa (en gridPaneTable)
-        ImageView imageViewTable = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardBack.png").toExternalForm()));
-        imageViewTable.setFitHeight(100);
-        imageViewTable.setFitWidth(90);
-        gridPaneTable.add(imageViewTable, 1, 0);
+
+        Cards deckCard = new Cards("", "", 90, 140);
+        deckCard.setOnMouseClicked(this::drawCardFromDeck); // Evento para tomar una carta
+        gridPaneTable.add(deckCard, 1, 0); // Posición (0,1)
+
+//        ImageView imageViewTable = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardBack.png").toExternalForm()));
+//        imageViewTable.setFitHeight(100);
+//        imageViewTable.setFitWidth(90);
+//        gridPaneTable.add(imageViewTable, 1, 0);
 
         // Cuadro de diálogo para seleccionar el número de jugadores máquina
         TextInputDialog dialog = new TextInputDialog("1");
@@ -127,6 +132,34 @@ public class GameController {
 
         //Estado de la suma
         sumStatus();
+    }
+
+
+    /**
+     * Metodo para tomar una carta del mazo
+     */
+    private void drawCardFromDeck(MouseEvent event) {
+        Player user = players.get(0);
+
+        if (!deck.isEmpty()) {
+            Cards drawnCard = deck.drawCard();
+            user.addCard(drawnCard);
+
+            Platform.runLater(() -> {
+                // Actualizar cartas del usuario
+                displayUserCards();
+            });
+
+            System.out.println("Carta tomada: " + drawnCard.getRank() + " de " + drawnCard.getSuit());
+        } else {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Mazo vacío");
+                alert.setHeaderText(null);
+                alert.setContentText("El mazo ya no tiene cartas.");
+                alert.showAndWait();
+            });
+        }
     }
 
     private void displayMachineCards() {
