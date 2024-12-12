@@ -90,5 +90,7 @@
       </Label>
       <TextField fx:id="textFieldSuma" alignment="CENTER" layoutX="291.0" layoutY="367.0" />
       <Button fx:id="starGameButton" layoutX="338.0" layoutY="139.0" mnemonicParsing="false" onAction="#onActionStarGameButton" text="Star Game" />
+      <Label alignment="CENTER" layoutX="649.0" layoutY="46.0" text="Turn Status" textFill="WHITE" />
+      <TextField fx:id="textFieldTurnStatus" alignment="CENTER" layoutX="593.0" layoutY="73.0" />
    </children>
 </Pane>
