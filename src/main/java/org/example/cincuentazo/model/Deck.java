@@ -17,7 +17,7 @@ public class Deck {
 
     public Deck(double cardWidth, double cardHeight) {
         pokerCards = new ArrayList<>();
-        String[] ranks = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+        String[] ranks = {"1", "2", "3", "4", "5", "6", "7", "8", "0", "10", "-10", "-10", "-10"};
         String[] suits = {"♠", "♥", "♦", "♣"};
 
         //Create each card and put into deck
