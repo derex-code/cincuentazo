@@ -48,20 +48,27 @@ public class Deck {
     }
 
     /**
-     * Crea una representación visual del mazo usando un TilePane.
-     *
-     * @return TilePane con las cartas distribuidas.
+     * Metodo para obtener una carta inicial
      */
-    public TilePane renderDeck() {
-        TilePane tilePane = new TilePane();
-        tilePane.setHgap(10);
-        tilePane.setVgap(10);
-
-        for (Cards card : pokerCards) {
-            tilePane.getChildren().add(card);
-        }
-        return tilePane;
+    public Cards getInitialCard() {
+        return pokerCards.get(0); // Retorna la primera carta sin removerla
     }
+
+//    /**
+//     * Crea una representación visual del mazo usando un TilePane.
+//     *
+//     * @return TilePane con las cartas distribuidas.
+//     */
+//    public TilePane renderDeck() {
+//        TilePane tilePane = new TilePane();
+//        tilePane.setHgap(10);
+//        tilePane.setVgap(10);
+//
+//        for (Cards card : pokerCards) {
+//            tilePane.getChildren().add(card);
+//        }
+//        return tilePane;
+//    }
 
     /**
      * Return the cards in the deck
