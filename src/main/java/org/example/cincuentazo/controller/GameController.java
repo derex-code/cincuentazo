@@ -8,20 +8,26 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.scene.input.MouseEvent;
 import org.example.cincuentazo.model.Alerts.AlertBox;
 
 import java.util.Optional;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import org.example.cincuentazo.model.Cards;
 import org.example.cincuentazo.model.Deck;
 import org.example.cincuentazo.model.Player;
 
+import javax.smartcardio.Card;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Clase controladora
+ */
 public class GameController {
     public GridPane userGame;
     public GridPane playerMachine3;
@@ -34,9 +40,17 @@ public class GameController {
     private Deck deck;
     private int numberOfMachinePlayers;
 
+    private int tableSum = 0; // acumulador de la suma de la mesa
+
     @FXML
     public void onActionStarGameButton(ActionEvent event) {
         System.out.println("ActionEvent");
+
+        //*****
+        // Mostrar carta inicial en la mesa
+        Cards initialCard = new Cards("", "", 90, 140);
+        gridPaneTable.add(initialCard, 0, 0);
+
 
         // Mostrar la carta boca abajo en la mesa (en gridPaneTable)
         ImageView imageViewTable = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardBack.png").toExternalForm()));
@@ -100,28 +114,118 @@ public class GameController {
         }
 
         currentPlayer = players.get(0); // Usuario empieza
+
+        //****
+        displayUserCards();
     }
 
     private void displayMachineCards() {
-        ImageView imageView1 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
-        imageView1.setFitHeight(85);
-        imageView1.setFitWidth(140);
-        playerMachine1.add(imageView1, 0, 0);
+        Cards machine1Card = new Cards("", "", 90, 140);
+        playerMachine1.add(machine1Card, 0, 0);
+
+
+//        ImageView imageView1 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
+//        imageView1.setFitHeight(85);
+//        imageView1.setFitWidth(140);
+//        playerMachine1.add(imageView1, 0, 0);
 
         if (numberOfMachinePlayers > 1) {
-            ImageView imageView2 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
-            imageView2.setFitHeight(85);
-            imageView2.setFitWidth(153);
-            playerMachine2.add(imageView2, 0, 0);
+
+            Cards machine2Card = new Cards("", "", 90, 140);
+            playerMachine2.add(machine2Card, 0, 0);
+
+//            ImageView imageView2 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
+//            imageView2.setFitHeight(85);
+//            imageView2.setFitWidth(153);
+//            playerMachine2.add(imageView2, 0, 0);
         }
 
         if (numberOfMachinePlayers > 2) {
-            ImageView imageView3 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
-            imageView3.setFitHeight(97);
-            imageView3.setFitWidth(153);
-            playerMachine3.add(imageView3, 0, 0);
+            Cards machine3Card = new Cards("", "", 90, 140);
+            playerMachine3.add(machine3Card, 0, 0);
+
+//            ImageView imageView3 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
+//            imageView3.setFitHeight(97);
+//            imageView3.setFitWidth(153);
+//            playerMachine3.add(imageView3, 0, 0);
         }
     }
+
+
+    /**
+     * Metodo para mostrar las cartas del usuario
+     */
+
+    private void displayUserCards() {
+        Platform.runLater(() -> {
+            userGame.getChildren().clear(); //Limpiar las cartas previas
+
+            Player user = players.get(0);
+            int col = 0;
+            for (Cards card : user.getHand()) {
+                Cards cardNode = new Cards(card.getRank(), card.getSuit(), 90, 140);
+
+//                ImageView cardImage = new ImageView(new Image(getClass().getResource(card.getImagePath()).toExternalForm()));
+//                cardImage.setFitHeight(100);
+//                cardImage.setFitWidth(75);
+//
+//                // Agregar evento para jugar carta
+//                cardImage.setOnMouseClicked(event -> playUserCard(card));
+                cardNode.setOnMouseClicked(event -> playUserCard(card));
+
+//                userGame.add(cardImage, col++, 0);
+                userGame.add(cardNode, col++, 0);
+            }
+        });
+    }
+
+    /**
+     * Metodo para que el usuario juegue la carta
+     */
+
+    private void playUserCard(Cards card) {
+        Player user = players.get(0);
+
+        if (user.getHand().contains(card)) {
+            user.getHand().remove(card); // Quitar carta de la mano del usuario
+            tableSum += card.getValue();
+
+            Platform.runLater(() -> {
+                // Mostrar carta en la mesa
+
+                Cards cardNode = new Cards(card.getRank(), card.getSuit(), 90, 140);
+                gridPaneTable.add(cardNode, 0, 0);
+
+//                ImageView cardImage = new ImageView(new Image(getClass().getResource(card.getImagePath()).toExternalForm()));
+//                cardImage.setFitHeight(100);
+//                cardImage.setFitWidth(75);
+//                gridPaneTable.add(cardImage, 0, 0);
+
+                // Actualizar cartas del usuario
+                displayUserCards();
+
+                // Verificar si el juego termina
+                checkGameEnd();
+            });
+        }
+    }
+
+    /**
+     * Metodo para verificar si el juego termina
+     */
+    private void checkGameEnd() {
+        if (tableSum >= 50) {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Game Over");
+                alert.setHeaderText(null);
+                alert.setContentText("Game over! Total: " + tableSum);
+                alert.showAndWait();
+                System.exit(0);
+            });
+        }
+    }
+
 
     private void startGameLoop() {
         while (true) {
@@ -154,19 +258,33 @@ public class GameController {
             Thread.sleep((long) (2000 + Math.random() * 2000)); // Esperar entre 2-4 segundos
             Platform.runLater(() -> {
                 System.out.println(machine.getName() + " played a card.");
+                //***
+                Cards card = machine.playCard(); // Máquina juega carta
+                tableSum += card.getValue();
+
                 // Mostrar carta en gridPaneTable
-                ImageView cardImage = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardFront.png").toExternalForm()));
-                cardImage.setFitHeight(100);
-                cardImage.setFitWidth(90);
-                gridPaneTable.add(cardImage, 0, 0);
+                Cards cardNode = new Cards(card.getRank(), card.getSuit(), 90, 140);
+                gridPaneTable.add(cardNode, 0, 0);
+//                ImageView cardImage = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardFront.png").toExternalForm()));
+//                cardImage.setFitHeight(100);
+//                cardImage.setFitWidth(90);
+//                gridPaneTable.add(cardImage, 0, 0);
+
+                //***
+                //Verificar si el juego termina
+                checkGameEnd();
             });
 
-            machine.addCard(deck.drawCard()); // Tomar nueva carta
+            //*****Pendiente verificar si lo dejo o lo elimino mejor
+            //machine.addCard(deck.drawCard()); // Tomar nueva carta
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Metodo para manejar el turno del siguiente jugador
+     */
     private void nextPlayer() {
         int currentIndex = players.indexOf(currentPlayer);
         currentPlayer = players.get((currentIndex + 1) % players.size());
