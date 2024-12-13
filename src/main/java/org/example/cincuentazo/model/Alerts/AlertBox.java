@@ -4,7 +4,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-
+/**
+ * AlertBox class to show the alert's game
+ */
 public class AlertBox implements AlertBoxInterface {
     @Override
     public void showAlert(String title, String header, String message) {

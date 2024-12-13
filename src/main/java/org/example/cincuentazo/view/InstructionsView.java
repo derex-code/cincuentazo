@@ -8,6 +8,11 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * InstructionsView class represent the view of the game.
+ * @author Olman Alexander Silva 2343025-2724
+ * @version 1.0
+ */
 public class InstructionsView extends Stage {
     public InstructionsView() throws IOException {
         FXMLLoader loader = new FXMLLoader(

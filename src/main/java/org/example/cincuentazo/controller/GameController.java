@@ -31,7 +31,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Clase controladora que gestiona las clases del modelo y la interfaz
+ * Gamecontroller class to administrate the model classes and the view classes.
+ * @author Olman Alexander Silva 2343025-2724
+ * @version 1.0
  */
 public class GameController {
     //GridPanes que contienen cartas para jugadores y para el desarrollo del juego
