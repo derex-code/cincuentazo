@@ -6,7 +6,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
 /**
- * Represent the cards of the game
+ * Class to represent the cards of the game
  * @author Olman Alexander Silva 2343025-2724
  * @version 1.0
  */
@@ -15,7 +15,7 @@ public class Cards extends Group {
     private final String suit; // suit of the cards
 
     /**
-     * Constructor
+     * Constructor of the class
      * @param rank represent the value of the cards
      * @param suit represent hearts, diamonds, clubs and spades
      */
@@ -50,7 +50,7 @@ public class Cards extends Group {
     }
 
     /**
-     * Method to get the value of the card
+     * Method to get the rank of the card
      * @return rank
      */
     public String getRank() {
@@ -58,12 +58,35 @@ public class Cards extends Group {
     }
 
     /**
-     * Metodo para copnvertir el rango de la carta a int
+     * Method to convert the rank of the card to value int
+     * @return value type int
      */
     public int getValue(){
-        return Integer.parseInt(rank);
+        switch (rank) {
+            case "A": // AS card
+                return 1;
+            case "J":  // Jack card
+                return -10;
+            case "Q":  // Queen card
+                return -10;
+            case "K":  // King card
+                return -10;
+            case "9":  // Card 9
+                return 0;
+            default:  // For the rest of the cards equals to number rank
+                try {
+                    return Integer.parseInt(rank);  // Convert the rank to int value
+                } catch (NumberFormatException e) {
+                    // For invalid rank, return 0
+                    return 0;
+                }
+        }
     }
 
+    /**
+     * Method to return the suit of the card
+     * @return card's suit
+     */
     public String getSuit() {
         return suit;
     }

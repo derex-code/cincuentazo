@@ -16,8 +16,8 @@ public class Player {
     private final boolean isUser;
 
     /**
-     * constructor de la clase
-     * @param name representa el nombre del jugador
+     * Method constructor of the class
+     * @param name represent the name of the player
      */
     public Player(String name) {
         this.name = name;
@@ -27,42 +27,43 @@ public class Player {
     }
 
     /**
-     * metodo para adherir cartas
-     * @param card representa la carta adherida
+     * Method to add cards
+     * @param card represent the added card
      */
     public void addCard(Cards card) {
         hand.add(card);
     }
 
     /**
-     * Metodo para jugar una carta
-     * @return representa el primer movimiento
+     * Method to play a card
+     * @return represent the first movement
      */
     public Cards playCard() {
         if (!hand.isEmpty() && canPlay) {
-            return hand.removeFirst(); // Simula jugar la primera carta de la mano
+            return hand.removeFirst();
         }
         return null;
     }
 
     /**
-     * Metodo que retorna el nombre del jugador
-     * @return representa el nombre del jugador
+     * Method to return the name of the player
+     * @return returns player's name
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Metodo que retorna la mano del jugador
-     * @return representa la mano del jugador
+     * Method to return the hand of the player
+     * @return returns hand's player
      */
     public List<Cards> getHand() {
         return hand;
     }
 
     /**
-     * Metodo para verificar si es el jugador usuario
+     * Method to check if the player is a user
+     * @return boolean is user or not.
      */
     public boolean isUser() {
         return isUser;

@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represent all the cards in the deck
+ * Deck class represent the deck that contein the cards
  * @author Olman Alexander Silva 2343025-2724
  * @version 1.0
  */
@@ -14,7 +14,7 @@ public class Deck {
 
     public Deck(double cardWidth, double cardHeight) {
         pokerCards = new ArrayList<>();
-        String[] ranks = {"1", "2", "3", "4", "5", "6", "7", "8", "0", "10", "-10", "-10", "-10"};
+        String[] ranks = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
         String[] suits = {"♠", "♥", "♦", "♣"};
 
         //Create each card and put into deck
@@ -26,7 +26,7 @@ public class Deck {
     }
 
     /**
-     * Shuffle the cards of the deck
+     * Method to shuffle the cards of the deck
      */
     public void suffle(){
         Collections.shuffle(pokerCards);
@@ -39,28 +39,33 @@ public class Deck {
      */
     public Cards drawCard(){
         if (!pokerCards.isEmpty()) {
-            return pokerCards.remove(0);
+            return pokerCards.removeFirst();
         }
         return null;
     }
 
+//    /**
+//     * Metodo para obtener u
+//     */
+//    public Cards getInitialCard() {
+//        return pokerCards.getFirst(); // Retorna la primera carta sin removerla
+//    }
+
     /**
-     * Metodo para obtener una carta inicial
+     * Method to verificate if the pokercards is empty
+     * @return true or false
      */
-    public Cards getInitialCard() {
-        return pokerCards.get(0); // Retorna la primera carta sin removerla
-    }
 
     public boolean isEmpty() {
         return pokerCards.isEmpty();
     }
 
-    /**
-     * Return the cards in the deck
-     * @return The actual number of the card in the deck
-     */
-    public int getSize(){
-        return pokerCards.size();
-    }
+//    /**
+//     * Return the cards in the deck
+//     * @return The actual number of the card in the deck
+//     */
+//    public int getSize(){
+//        return pokerCards.size();
+//    }
 
 }
