@@ -70,24 +70,6 @@ public class GameController {
     //condicion para suspender y reanudar los hilos de las maquinas
     private final Condition userTurnEnded = turnLock.newCondition();
 
-
-    /**
-     * Metodo para conocer el estado de la suma
-     */
-    public void sumStatus(){
-        textFieldSuma.setEditable(false);
-        textFieldSuma.setText(String.valueOf(tableSum));
-    }
-
-    /**
-     * Metodo para conocer quien posee el turno de juego
-     */
-    public void turnStatus(String status){
-
-        textFieldTurnStatus.setEditable(false);
-        textFieldTurnStatus.setText(status);
-    }
-
     /**
      * Metodo que invoca el cuadro de diagolo para seleccionar el numero de jugadores
      * Muestra imagenes en los gridpane de cada jugador
@@ -99,11 +81,6 @@ public class GameController {
         System.out.println("ActionEvent");
 
         // Mostrar la carta boca abajo en la mesa (en gridPaneTable)
-
-//        Cards deckCard = new Cards("", "", 90, 140);
-//        deckCard.setOnMouseClicked(this::drawCardFromDeck); // Evento para tomar una carta
-//        gridPaneTable.add(deckCard, 1, 0); // Posición (0,1)
-
         ImageView imageViewTable = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardBack.png").toExternalForm()));
         imageViewTable.setFitHeight(140);
         imageViewTable.setFitWidth(90);
@@ -140,7 +117,7 @@ public class GameController {
                     );
                 }
             } catch (NumberFormatException e) {
-                //showErrorDialog("Invalid input. Please enter a number.");
+                //show alert, Invalid input. Please enter a number.
                 new AlertBox().showAlert(
                         "Cincuentazo Game",
                         "Alert",
@@ -192,7 +169,7 @@ public class GameController {
             }
         }
 
-        currentPlayer = players.get(1); // Usuario empieza
+        currentPlayer = players.get(1); // empieza la maquina 1
 
         displayUserCards();
 
@@ -203,40 +180,27 @@ public class GameController {
     }
 
     /**
-     * Metodo para mostrar las cartas de jugadores maquina
+     * Metodo para mostrar una imagen de cartas para los jugadores maquina
      */
 
     private void displayMachineCards() {
-//        Cards machine1Card = new Cards("", "", 90, 140);
-//        playerMachine1.add(machine1Card, 0, 0);
-
         ImageView imageView1 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
         imageView1.setFitHeight(85);
         imageView1.setFitWidth(140);
         playerMachine1.add(imageView1, 0, 0);
-
         if (numberOfMachinePlayers > 1) {
-
-//            Cards machine2Card = new Cards("", "", 90, 140);
-//            playerMachine2.add(machine2Card, 0, 0);
-
             ImageView imageView2 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
             imageView2.setFitHeight(85);
             imageView2.setFitWidth(153);
             playerMachine2.add(imageView2, 0, 0);
         }
-
         if (numberOfMachinePlayers > 2) {
-//            Cards machine3Card = new Cards("", "", 90, 140);
-//            playerMachine3.add(machine3Card, 0, 0);
-
             ImageView imageView3 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
             imageView3.setFitHeight(97);
             imageView3.setFitWidth(153);
             playerMachine3.add(imageView3, 0, 0);
         }
     }
-
 
     /**
      * Metodo para mostrar las cartas del usuario
@@ -245,7 +209,6 @@ public class GameController {
     private void displayUserCards() {
         Platform.runLater(() -> {
             userGame.getChildren().clear(); //Limpiar las cartas previas
-
             Player user = players.getFirst();
             int col = 0;
             for (Cards card : user.getHand()) {
@@ -273,7 +236,6 @@ public class GameController {
                 // Mostrar carta en la mesa
                 Cards cardNode = new Cards(card.getRank(), card.getSuit(), 90, 140);
                 gridPaneTable.add(cardNode, 0, 0);
-
                 // Actualizar cartas del usuario
                 displayUserCards();
 
@@ -283,6 +245,16 @@ public class GameController {
                 // Verificar si el juego termina
                 checkGameEnd();
             });
+            //*******
+            //finalizar turno del usuario
+            turnLock.lock();
+            try {
+                isUserTurn = false;
+                userTurnEnded.signal(); // Notificar a los hilos que el turno termino
+            } finally {
+                turnLock.unlock();
+            }
+
         }
     }
 
@@ -301,14 +273,31 @@ public class GameController {
                 displayUserCards();
             });
 
+            //*******
+            //finalizar turno del usuario
+            turnLock.lock();
+            try {
+                isUserTurn = false;
+                userTurnEnded.signal(); // Notificar a los hilos que el turno termino
+            } finally {
+                turnLock.unlock();
+            }
+
             System.out.println("Carta tomada: " + drawnCard.getRank() + " de " + drawnCard.getSuit());
         } else {
             Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Mazo vacío");
-                alert.setHeaderText(null);
-                alert.setContentText("El mazo ya no tiene cartas.");
-                alert.showAndWait();
+
+                new AlertBox().showAlert(
+                        "Cincuentazo Game",
+                        "Mazo Vacio",
+                        "El mazo ya no contiene cartas.."
+                );
+
+//                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+//                alert.setTitle("Mazo vacío");
+//                alert.setHeaderText(null);
+//                alert.setContentText("El mazo ya no tiene cartas.");
+//                alert.showAndWait();
             });
         }
     }
@@ -320,12 +309,12 @@ public class GameController {
     private void checkGameEnd() {
         if (tableSum >= 50) {
             Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Game Over");
-                alert.setHeaderText(null);
-                alert.setContentText("Game over! Total: " + tableSum);
-                alert.showAndWait();
-                System.exit(0);
+
+                new AlertBox().showAlert(
+                        "Cincuentazo Game",
+                        "Game Over",
+                        "Game Over! Total: " + tableSum
+                );
             });
         }
     }
@@ -392,7 +381,6 @@ public class GameController {
         });
     }
 
-
     /**
      * Metodo para que el jugador maquina juegue su turno
      * @param machine representa el jugador maquina
@@ -406,12 +394,11 @@ public class GameController {
             System.out.println("El mazo está vacío. No se pueden tomar más cartas.");
             return;
         }
-
         try {
             Thread.sleep((long) (2000 + Math.random() * 2000)); // Esperar entre 2-4 segundos
             Platform.runLater(() -> {
-                System.out.println(machine.getName() + " played a card.");
 
+                System.out.println(machine.getName() + " played a card.");
                 // Máquina juega carta
                 Cards card = machine.playCard();
                 tableSum += card.getValue();
@@ -422,7 +409,6 @@ public class GameController {
 
                 // Estado de la suma
                 sumStatus();
-
                 // Verificar si el juego termina
                 checkGameEnd();
             });
@@ -433,7 +419,6 @@ public class GameController {
         }
     }
 
-
     /**
      * Metodo para pasar al siguiente jugador
      */
@@ -441,6 +426,24 @@ public class GameController {
         int currentIndex = players.indexOf(currentPlayer);
         currentPlayer = players.get((currentIndex + 1) % players.size());
         System.out.println("Turno de: " + currentPlayer.getName());
+        turnStatus(currentPlayer.getName());
+    }
+
+    /**
+     * Metodo para conocer quien posee el turno de juego
+     */
+    public void turnStatus(String status){
+
+        textFieldTurnStatus.setEditable(false);
+        textFieldTurnStatus.setText(status);
+    }
+
+    /**
+     * Metodo para conocer el estado de la suma
+     */
+    public void sumStatus(){
+        textFieldSuma.setEditable(false);
+        textFieldSuma.setText(String.valueOf(tableSum));
     }
 
     /**
