@@ -435,7 +435,6 @@ public class GameController {
      * Metodo para conocer quien posee el turno de juego
      */
     public void turnStatus(String status){
-
         textFieldTurnStatus.setEditable(false);
         textFieldTurnStatus.setText(status);
     }
