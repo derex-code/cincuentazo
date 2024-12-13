@@ -26,6 +26,9 @@ import org.example.cincuentazo.view.InstructionsView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Clase controladora que gestiona las clases del modelo y la interfaz
@@ -61,6 +64,12 @@ public class GameController {
 
     private boolean isUserTurn = false; // Control de turnos
 
+    //lock para coordinar el acceso al turno actual
+    private final Lock turnLock = new ReentrantLock();
+
+    //condicion para suspender y reanudar los hilos de las maquinas
+    private final Condition userTurnEnded = turnLock.newCondition();
+
 
     /**
      * Metodo para conocer el estado de la suma
@@ -89,21 +98,19 @@ public class GameController {
     public void onActionStarGameButton(ActionEvent event) {
         System.out.println("ActionEvent");
 
-        //*****
-        // Mostrar carta inicial en la mesa
-        Cards initialCard = new Cards("", "", 90, 140);
-        gridPaneTable.add(initialCard, 0, 0);
-
-
         // Mostrar la carta boca abajo en la mesa (en gridPaneTable)
 
-        Cards deckCard = new Cards("", "", 90, 140);
-        deckCard.setOnMouseClicked(this::drawCardFromDeck); // Evento para tomar una carta
-        gridPaneTable.add(deckCard, 1, 0); // Posición (0,1)
+//        Cards deckCard = new Cards("", "", 90, 140);
+//        deckCard.setOnMouseClicked(this::drawCardFromDeck); // Evento para tomar una carta
+//        gridPaneTable.add(deckCard, 1, 0); // Posición (0,1)
 
         ImageView imageViewTable = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardBack.png").toExternalForm()));
-        imageViewTable.setFitHeight(100);
+        imageViewTable.setFitHeight(140);
         imageViewTable.setFitWidth(90);
+
+        // evento para tomar una carta del mazo
+        imageViewTable.setOnMouseClicked(this::drawCardFromDeck);
+
         gridPaneTable.add(imageViewTable, 1, 0);
 
         // Cuadro de diálogo para seleccionar el número de jugadores máquina
@@ -156,8 +163,19 @@ public class GameController {
      * Metodo para iniciar el juego
      */
     private void initializeGame() {
+
         deck = new Deck(90, 140);
         deck.suffle();
+
+        Cards initialCard = deck.drawCard(); // obtener carta aleatoria
+        // Mostrar carta inicial en la mesa
+        Platform.runLater(() -> {
+            Cards cardNode = new Cards(initialCard.getRank(), initialCard.getSuit(), 90, 140);
+            gridPaneTable.add(cardNode, 0, 0);
+        });
+        // Actualizar la suma inicial en la mesa
+        tableSum = initialCard.getValue();
+        sumStatus(); // Actualizar el estado de la suma
 
         // Crear jugador usuario
         players.add(new Player("User"));
@@ -174,12 +192,14 @@ public class GameController {
             }
         }
 
-        currentPlayer = players.getFirst(); // Usuario empieza
+        currentPlayer = players.get(1); // Usuario empieza
 
         displayUserCards();
 
-        //Estado de la suma
-        sumStatus();
+        //Codigo para que startGameLoop se ejecute en hilo diferente al hilo de la interfaz grafica
+        Thread gameThread = new Thread(() -> startGameLoop());
+        gameThread.setDaemon(true);
+        gameThread.start();
     }
 
     /**
@@ -187,9 +207,8 @@ public class GameController {
      */
 
     private void displayMachineCards() {
-        Cards machine1Card = new Cards("", "", 90, 140);
-        playerMachine1.add(machine1Card, 0, 0);
-
+//        Cards machine1Card = new Cards("", "", 90, 140);
+//        playerMachine1.add(machine1Card, 0, 0);
 
         ImageView imageView1 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
         imageView1.setFitHeight(85);
@@ -198,8 +217,8 @@ public class GameController {
 
         if (numberOfMachinePlayers > 1) {
 
-            Cards machine2Card = new Cards("", "", 90, 140);
-            playerMachine2.add(machine2Card, 0, 0);
+//            Cards machine2Card = new Cards("", "", 90, 140);
+//            playerMachine2.add(machine2Card, 0, 0);
 
             ImageView imageView2 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
             imageView2.setFitHeight(85);
@@ -208,8 +227,8 @@ public class GameController {
         }
 
         if (numberOfMachinePlayers > 2) {
-            Cards machine3Card = new Cards("", "", 90, 140);
-            playerMachine3.add(machine3Card, 0, 0);
+//            Cards machine3Card = new Cards("", "", 90, 140);
+//            playerMachine3.add(machine3Card, 0, 0);
 
             ImageView imageView3 = new ImageView(new Image(getClass().getResource("/org/example/cincuentazo/Images/cardsBack.png").toExternalForm()));
             imageView3.setFitHeight(97);
@@ -232,9 +251,7 @@ public class GameController {
             for (Cards card : user.getHand()) {
                 Cards cardNode = new Cards(card.getRank(), card.getSuit(), 90, 140);
 
-
                 // evento para jugar carta
-
                 cardNode.setOnMouseClicked(event -> playUserCard(card));
                 userGame.add(cardNode, col++, 0);
             }
@@ -252,7 +269,6 @@ public class GameController {
             user.getHand().remove(card); // Quitar carta de la mano del usuario
             tableSum += card.getValue();
 
-
             Platform.runLater(() -> {
                 // Mostrar carta en la mesa
                 Cards cardNode = new Cards(card.getRank(), card.getSuit(), 90, 140);
@@ -269,7 +285,6 @@ public class GameController {
             });
         }
     }
-
 
     /**
      * Metodo para tomar una carta del mazo
@@ -316,27 +331,37 @@ public class GameController {
     }
 
     /**
-     * Metodo para iniciar el ciclo del juego
+     * Metodo que contiene el ciclo de los turnos del juego
      */
     private void startGameLoop() {
-        while (true) {
-            if (currentPlayer.getName().equals("User")) {
-                waitForUserTurn();
-            } else {
-                playMachineTurn(currentPlayer);
-            }
+        while (true){
+            turnLock.lock();
+            try {
+                if (currentPlayer.isUser()){
+                    isUserTurn = true;
+                    waitForUserTurn();
 
-            // Cambiar al siguiente jugador
+                    //Esperar a que el usuario termine su turno
+                    while (isUserTurn) {
+                        userTurnEnded.await();
+                    }
+                } else {
+                    playMachineTurn(currentPlayer);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }finally {
+                turnLock.unlock();
+            }
+            // Siguiente jugador
             nextPlayer();
         }
     }
 
     /**
-     * Metodo para esperar que el usuario haga su juego
+     * Metodo para que el usuario haga su jugada
      */
     private void waitForUserTurn() {
-        isUserTurn = true; // Indicar que es el turno del usuario
-        //turnStatus();
         Platform.runLater(() -> {
 
             new AlertBox().showAlert(
@@ -345,7 +370,6 @@ public class GameController {
                     "It's your turn! Play a card."
             );
 
-
             // Permitir que el usuario seleccione y juegue una carta
             Player user = players.getFirst();
             for (Cards card : user.getHand()) {
@@ -353,8 +377,15 @@ public class GameController {
                     if (isUserTurn) { // Verificar que sea el turno del usuario
                         playUserCard(card); // Juega la carta
                         drawCardFromDeck(null); // Toma una nueva carta
-                        isUserTurn = false; // Finaliza el turno del usuario
-                        nextPlayer(); // Cambia al siguiente jugador
+
+                        //finalizar turno del usuario
+                        turnLock.lock();
+                        try {
+                            isUserTurn = false;
+                            userTurnEnded.signal(); // Notificar a los hilos que el turno termino
+                        } finally {
+                            turnLock.unlock();
+                        }
                     }
                 });
             }
@@ -367,12 +398,17 @@ public class GameController {
      * @param machine representa el jugador maquina
      */
     private void playMachineTurn(Player machine) {
-        try {
-            // Solo aplicar el retraso si es un jugador máquina
-            if (!machine.isUser()) {
-                Thread.sleep((long) (2000 + Math.random() * 2000)); // Esperar entre 2-4 segundos
-            }
+        if (machine.getHand().isEmpty()) {
+            System.out.println(machine.getName() + " no tiene cartas para jugar.");
+            return;
+        }
+        if (deck.isEmpty()) {
+            System.out.println("El mazo está vacío. No se pueden tomar más cartas.");
+            return;
+        }
 
+        try {
+            Thread.sleep((long) (2000 + Math.random() * 2000)); // Esperar entre 2-4 segundos
             Platform.runLater(() -> {
                 System.out.println(machine.getName() + " played a card.");
 
@@ -393,26 +429,23 @@ public class GameController {
 
             machine.addCard(deck.drawCard()); // Máquina toma nueva carta
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 
 
     /**
-     * Metodo para manejar el turno del siguiente jugador
+     * Metodo para pasar al siguiente jugador
      */
     private void nextPlayer() {
         int currentIndex = players.indexOf(currentPlayer);
         currentPlayer = players.get((currentIndex + 1) % players.size());
-        if (currentPlayer.isUser()) {
-            waitForUserTurn(); // Inicia el turno del usuario
-            turnStatus("Turno usuario");
-        } else {
-            playMachineTurn(currentPlayer); // Inicia el turno de la máquina
-            turnStatus("Turno maquina");
-        }
+        System.out.println("Turno de: " + currentPlayer.getName());
     }
 
+    /**
+     * Metodo para mostrar las instrucciones
+     */
     public void onActionGameInstructions(ActionEvent actionEvent) throws IOException {
         InstructionsView.getInstance();
     }
