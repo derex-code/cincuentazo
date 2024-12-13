@@ -82,7 +82,7 @@
             <Font size="23.0" />
          </font>
       </Label>
-      <Button layoutX="28.0" layoutY="511.0" mnemonicParsing="false" style="-fx-background-color: gray;" text="Game Instructions" />
+      <Button layoutX="28.0" layoutY="511.0" mnemonicParsing="false" onAction="#onActionGameInstructions" style="-fx-background-color: gray;" text="Game Instructions" />
       <Label layoutX="342.0" layoutY="346.0" text="Game status">
          <font>
             <Font name="System Bold" size="15.0" />

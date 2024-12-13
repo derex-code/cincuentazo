@@ -11,7 +11,9 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseEvent;
 import org.example.cincuentazo.model.Alerts.AlertBox;
+import org.example.cincuentazo.view.InstructionsView;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import javafx.application.Platform;
@@ -19,6 +21,7 @@ import javafx.scene.control.Alert;
 import org.example.cincuentazo.model.Cards;
 import org.example.cincuentazo.model.Deck;
 import org.example.cincuentazo.model.Player;
+import org.example.cincuentazo.view.InstructionsView;
 
 
 import java.util.ArrayList;
@@ -410,5 +413,8 @@ public class GameController {
         }
     }
 
+    public void onActionGameInstructions(ActionEvent actionEvent) throws IOException {
+        InstructionsView.getInstance();
+    }
 }
 
