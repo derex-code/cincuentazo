@@ -30,35 +30,65 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 1.0
  */
 public class GameController {
-    /** GridPane representing the user's game area. */
+    /**
+     * GridPane representing the user's game area.
+     */
     public GridPane userGame;
-    /** GridPane representing the first machine player's game area. */
+    /**
+     * GridPane representing the first machine player's game area.
+     */
     public GridPane playerMachine3;
-    /** GridPane representing the second machine player's game area. */
+    /**
+     * GridPane representing the second machine player's game area.
+     */
     public GridPane playerMachine2;
-    /** GridPane representing the third machine player's game area. */
+    /**
+     * GridPane representing the third machine player's game area.
+     */
     public GridPane playerMachine1;
-    /** GridPane representing the shared table area where cards are placed. */
+    /**
+     * GridPane representing the shared table area where cards are placed.
+     */
     public GridPane gridPaneTable;
-    /** TextField to display the current sum of the cards on the table. */
+    /**
+     * TextField to display the current sum of the cards on the table.
+     */
     public TextField textFieldSuma;
-    /** TextField to display the current turn status of the game. */
+    /**
+     * TextField to display the current turn status of the game.
+     */
     public TextField textFieldTurnStatus;
-    /** List containing all the players participating in the game. */
+    /**
+     * List containing all the players participating in the game.
+     */
     private final List<Player> players = new ArrayList<>();
-    /** The player currently taking their turn. */
+    /**
+     * The player currently taking their turn.
+     */
     private Player currentPlayer;
-    /** The deck of cards used in the game. */
+    /**
+     * The deck of cards used in the game.
+     */
     private Deck deck;
-    /** The number of machine players in the game. */
+    /**
+     * The number of machine players in the game.
+     */
     private int numberOfMachinePlayers;
-    /** The current sum of the card values on the table. */
+    /**
+     * The current sum of the card values on the table.
+     */
     private int tableSum = 0;
-    /** Indicates whether it is the user's turn. */
+    /**
+     * Indicates whether it is the user's turn.
+     */
     private boolean isUserTurn = false;
-    /** Lock used to coordinate access to the current turn, ensuring thread safety. */
+    /**
+     * Lock used to coordinate access to the current turn, ensuring thread safety.
+     */
     private final Lock turnLock = new ReentrantLock();
-    /**Condition used to suspend and resume machine player threads based on the user's turn.*/
+    /**
+     * Condition used to suspend and resume machine player threads based on the user's turn.
+     */
     private final Condition userTurnEnded = turnLock.newCondition();
 
     /**
@@ -237,6 +267,7 @@ public class GameController {
      * removing the card from the user's hand, updating the table sum, and updating
      * the game interface to reflect the new card placed on the table.
      * It also ensures that the user's turn ends and notifies the game to proceed with the next player's turn.
+     *
      * @param card The card the user wishes to play.
      */
     private void playUserCard(Cards card) {
@@ -281,6 +312,7 @@ public class GameController {
      * The method also updates the game interface to reflect the new card in the user's hand
      * and ends the user's turn.
      * If the deck is empty, it shows an alert to inform the user that no cards are left.
+     *
      * @param event The mouse event triggered when the user clicks to draw a card.
      */
     private void drawCardFromDeck(MouseEvent event) {
@@ -331,14 +363,14 @@ public class GameController {
      */
     private void startGameLoop() {
         // Infinite loop to keep the game running
-        while (true){
+        while (true) {
             // Lock to ensure synchronized turn management
             turnLock.lock();
             try {
                 // Update the turn status in the UI
                 Platform.runLater(() -> turnStatus(currentPlayer));
                 // Check if the current player is the user
-                if (currentPlayer.isUser()){
+                if (currentPlayer.isUser()) {
                     // If it's the user's turn, set the turn flag and wait for the user to finish
                     isUserTurn = true;
                     waitForUserTurn(); // Wait for the user to play their turn
@@ -354,7 +386,7 @@ public class GameController {
             } catch (InterruptedException e) {
                 // Handle interruption of the thread
                 Thread.currentThread().interrupt();
-            }finally {
+            } finally {
                 // Always release the lock after finishing the turn
                 turnLock.unlock();
             }
@@ -396,6 +428,8 @@ public class GameController {
                         } finally {
                             turnLock.unlock(); // Always unlock after modifying the state
                         }
+                        //****
+                        deck.returnCardToDeck(card); //return card to the deck
                     }
                 });
             }
@@ -405,11 +439,11 @@ public class GameController {
     /**
      * This method handles the turn of a machine player. It allows the machine to play a card,
      * draw a new card from the deck, and updates the game state accordingly.
-     *
+     * <p>
      * The machine will play a valid card if it has one. If not, the turn is skipped.
      * After playing a card, the machine draws a new card from the deck and updates the table's sum.
      * If the deck is empty or the machine has no cards to play, the method handles these cases accordingly.
-     *
+     * <p>
      * The method simulates the machine player's thinking time by introducing a delay before making a move.
      *
      * @param machine The machine player whose turn is being processed.
@@ -449,6 +483,8 @@ public class GameController {
 
                 // Update the sum status on the UI
                 sumStatus();
+                //*** Devolver la carta jugada al mazo
+                deck.returnCardToDeck(card);
                 // The machine draws a new card from the deck
                 machine.addCard(deck.drawCard());
                 // Check for player eliminations based on the updated sum
@@ -484,9 +520,10 @@ public class GameController {
      * This method updates the game's user interface to display the current player's turn.
      * It checks if the current player is the user or another player (e.g., a machine),
      * and updates the status text accordingly.
+     *
      * @param currentPlayer the player whose turn it is
      */
-    public void turnStatus(Player currentPlayer){
+    public void turnStatus(Player currentPlayer) {
         if (currentPlayer.isUser()) {
             textFieldTurnStatus.setText("User's Turn");
         } else {
@@ -499,7 +536,7 @@ public class GameController {
      * It sets the value of the `textFieldSuma` to show the current `tableSum`.
      * The `textFieldSuma` is set to be non-editable to prevent user modification.
      */
-    public void sumStatus(){
+    public void sumStatus() {
         textFieldSuma.setEditable(false);
         textFieldSuma.setText(String.valueOf(tableSum));
     }
@@ -537,6 +574,7 @@ public class GameController {
      * Declares the winner of the game by displaying an alert box with the winner's name.
      * After declaring the winner, the game is ended by calling System.exit(0),
      * which terminates the application.
+     *
      * @param winner the player who is the last one remaining in the game and is declared the winner
      */
     private void declareWinner(Player winner) {

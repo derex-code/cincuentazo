@@ -55,4 +55,23 @@ public class Deck {
     public boolean isEmpty() {
         return pokerCards.isEmpty();
     }
+
+    /**
+     * Method to add a card back to the deck.
+     * This ensures the deck never runs out of cards.
+     *
+     * @param card the card to be added back to the deck.
+     */
+    public void returnCardToDeck(Cards card) {
+        pokerCards.add(card); // Adds the card back to the deck
+        shuffleDeck(); // Optionally shuffle the deck after returning the card
+    }
+
+    /**
+     * Method to shuffle the deck.
+     * This is used when returning a card to the deck.
+     */
+    private void shuffleDeck() {
+        Collections.shuffle(pokerCards); // Shuffle the deck
+    }
 }
