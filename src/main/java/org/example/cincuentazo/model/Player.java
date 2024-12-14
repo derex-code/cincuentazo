@@ -12,7 +12,6 @@ import java.util.List;
 public class Player {
     private final String name;
     private final List<Cards> hand;
-    private boolean canPlay;
     private final boolean isUser;
 
     /**
@@ -22,7 +21,6 @@ public class Player {
     public Player(String name) {
         this.name = name;
         this.hand = new ArrayList<>();
-        this.canPlay = true;
         this.isUser = name.equals("User");
     }
 
@@ -38,11 +36,28 @@ public class Player {
      * Method to play a card
      * @return represent the first movement
      */
-    public Cards playCard() {
-        if (!hand.isEmpty() && canPlay) {
-            return hand.removeFirst();
+    public Cards playCard(int currentSum) {
+        for (int i = 0; i < hand.size(); i++) {
+            Cards card = hand.get(i);
+            if (currentSum + card.getValue() <= 50) {
+                return hand.remove(i);
+            }
         }
         return null;
+    }
+
+    /**
+     * Method to determinate if the cards of the hand are playable
+     * @param currentSum represent the current sum
+     * @return boolean to know if it has a playable card
+     */
+    public boolean hasPlayableCard(int currentSum) {
+        for (Cards card : hand) {
+            if (currentSum + card.getValue() <= 50) {
+                return true; //There is at least one card that meets the rule
+            }
+        }
+        return false; //There isn't a valid card
     }
 
     /**
