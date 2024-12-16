@@ -13,6 +13,7 @@ public class Player {
     private final String name;
     private final List<Cards> hand;
     private final boolean isUser;
+    public int maxSum;
 
     /**
      * Method constructor of the class
@@ -22,6 +23,7 @@ public class Player {
         this.name = name;
         this.hand = new ArrayList<>();
         this.isUser = name.equals("User");
+        this.maxSum = 50;
     }
 
     /**
@@ -39,7 +41,7 @@ public class Player {
     public Cards playCard(int currentSum) {
         for (int i = 0; i < hand.size(); i++) {
             Cards card = hand.get(i);
-            if (currentSum + card.getValue() <= 50) {
+            if (currentSum + card.getValue() <= maxSum) {
                 return hand.remove(i);
             }
         }
@@ -53,7 +55,7 @@ public class Player {
      */
     public boolean hasPlayableCard(int currentSum) {
         for (Cards card : hand) {
-            if (currentSum + card.getValue() <= 50) {
+            if (currentSum + card.getValue() <= maxSum) {
                 return true; //There is at least one card that meets the rule
             }
         }
@@ -82,6 +84,14 @@ public class Player {
      */
     public boolean isUser() {
         return isUser;
+    }
+
+    /**
+     * Method to return the value of the maxSum
+     * @return maxSum
+     */
+    public int getMaxSum() {
+        return maxSum;
     }
 }
 
