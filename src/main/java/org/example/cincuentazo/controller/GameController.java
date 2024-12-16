@@ -151,8 +151,6 @@ public class GameController {
         initializeGame();
         // Display image of face-down cards for each machine player
         displayMachineCards();
-        // Start the game loop in a separate thread
-        new Thread(this::startGameLoop).start();
     }
 
     /**
@@ -344,6 +342,7 @@ public class GameController {
         } else {
             // If the deck is empty, display an alert
             Platform.runLater(() -> {
+                deck.returnCardToDeck(deck.drawCard());
                 new AlertBox().showAlert(
                         "Cincuentazo Game",
                         "Deck Empty",
