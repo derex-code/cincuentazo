@@ -13,7 +13,7 @@ public class Player {
     private final String name;
     private final List<Cards> hand;
     private final boolean isUser;
-    public int maxSum;
+    private final int maxSum;
 
     /**
      * Method constructor of the class
@@ -54,7 +54,9 @@ public class Player {
      * @return boolean to know if it has a playable card
      */
     public boolean hasPlayableCard(int currentSum) {
+        System.out.println("Checking playable cards for current sum: " + currentSum);
         for (Cards card : hand) {
+            System.out.println("Card value: " + card.getValue() + " | Max sum: " + maxSum);
             if (currentSum + card.getValue() <= maxSum) {
                 return true; //There is at least one card that meets the rule
             }

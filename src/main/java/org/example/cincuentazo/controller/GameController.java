@@ -50,6 +50,11 @@ public class GameController {
      * GridPane representing the shared table area where cards are placed.
      */
     public GridPane gridPaneTable;
+
+    /**
+     * List of played cards
+     */
+    private final List<Cards> playedCards = new ArrayList<>();
     /**
      * TextField to display the current sum of the cards on the table.
      */
@@ -146,7 +151,6 @@ public class GameController {
                 );
             }
         });
-
         // Initialize the game
         initializeGame();
         // Display image of face-down cards for each machine player
@@ -179,6 +183,7 @@ public class GameController {
         Platform.runLater(() -> {
             Cards cardNode = new Cards(initialCard.getRank(), initialCard.getSuit(), 90, 140);
             gridPaneTable.add(cardNode, 0, 0);
+            playedCards.add(cardNode);//add card to list
         });
         // Update the initial table sum
         tableSum = initialCard.getValue();
@@ -196,11 +201,11 @@ public class GameController {
                 player.addCard(deck.drawCard());
             }
         }
-        currentPlayer = players.get(1); // Machine 1 starts first
+        currentPlayer = players.get(1); // Machine 1 start first
         displayUserCards();
 
         // Code to run startGameLoop in a separate thread from the GUI thread
-        Thread gameThread = new Thread(() -> startGameLoop());
+        Thread gameThread = new Thread(this::startGameLoop);
         gameThread.setDaemon(true);
         gameThread.start();
     }
@@ -243,7 +248,7 @@ public class GameController {
             // Clear previous cards from the user's hand
             userGame.getChildren().clear();
             // Get the current user (assumed to be the first player in the list)
-            Player user = players.getFirst();
+            Player user = players.get(0);
             int col = 0;
             // Iterate through the user's cards and display each one
             for (Cards card : user.getHand()) {
@@ -281,7 +286,8 @@ public class GameController {
                 // Create a visual representation of the card and add it to the table (gridPaneTable)
                 Cards cardNode = new Cards(card.getRank(), card.getSuit(), 90, 140);
                 gridPaneTable.add(cardNode, 0, 0);
-                // Refresh the user's cards display
+                playedCards.add(cardNode);//add card to list
+                // Refresh the user's card display
                 displayUserCards();
                 // Update the table sum status
                 sumStatus();
@@ -320,12 +326,11 @@ public class GameController {
         if (!deck.isEmpty()) {
             // Draw a card from the deck
             Cards drawnCard = deck.drawCard();
+            // Update the game interface to display the new cards in the user's hand
+            displayUserCards();
             // Add the drawn card to the user's hand
             user.addCard(drawnCard);
-            // Update the game interface to display the new cards in the user's hand
-            Platform.runLater(() -> {
-                displayUserCards();
-            });
+
             // End the user's turn and notify other threads
             turnLock.lock();
             try {
@@ -348,6 +353,10 @@ public class GameController {
                         "Deck Empty",
                         "The Deck haven't cards"
                 );
+                // add cards to deck
+                playedCards.forEach(deck::returnCardToDeck);
+                // clear the list
+                playedCards.clear();
             });
         }
     }
@@ -403,6 +412,7 @@ public class GameController {
      */
     private void waitForUserTurn() {
         // Run the code on the JavaFX application thread
+
         Platform.runLater(() -> {
             // Show an alert to notify the user that it's their turn to play
             new AlertBox().showAlert(
@@ -418,6 +428,7 @@ public class GameController {
                     if (isUserTurn) { // Check if it's the user's turn
                         playUserCard(card); // Play the selected card
                         drawCardFromDeck(null); // Draw a new card from the deck
+                        displayUserCards();//*****
 
                         // End the user's turn
                         turnLock.lock(); // Lock to safely change turn status
@@ -427,12 +438,11 @@ public class GameController {
                         } finally {
                             turnLock.unlock(); // Always unlock after modifying the state
                         }
-                        //****
-                        deck.returnCardToDeck(card); //return card to the deck
                     }
                 });
             }
         });
+        checkAndEliminatePlayers(tableSum);
     }
 
     /**
@@ -453,12 +463,15 @@ public class GameController {
         // Check if the machine player has no cards left
         if (machine.getHand().isEmpty()) {
             System.out.println(machine.getName() + " no tiene cartas para jugar.");
-            return; // Skip the turn if no cards are available
+            //return; // Skip the turn if no cards are available
         }
         // Check if the deck is empty and no more cards can be drawn
         if (deck.isEmpty()) {
             System.out.println("Deck is empty. Can't take a card.");
-            return; // Skip the turn if the deck is empty
+            // add cards to deck
+            playedCards.forEach(deck::returnCardToDeck);
+            // clear the list
+            playedCards.clear();
         }
         try {
             // Simulate thinking time for the machine player (2-4 seconds delay)
@@ -469,7 +482,8 @@ public class GameController {
                 Cards card = machine.playCard(tableSum);
                 if (card == null) {
                     System.out.println(machine.getName() + " haven't a valid card to play");
-                    return; // Machine can't play any valid card
+                    checkAndEliminatePlayers(tableSum);
+                    //return; // Machine can't play any valid card
                 }
                 // Log the card played by the machine
                 System.out.println(machine.getName() + " played a card: " + card.getRank() + " of " + card.getSuit());
@@ -479,15 +493,14 @@ public class GameController {
                 // Display the played card on the game table (GridPane)
                 Cards cardNode = new Cards(card.getRank(), card.getSuit(), 90, 140);
                 gridPaneTable.add(cardNode, 0, 0);
+                playedCards.add(cardNode);//add card to list
 
                 // Update the sum status on the UI
                 sumStatus();
-                //*** Devolver la carta jugada al mazo
-                deck.returnCardToDeck(card);
                 // The machine draws a new card from the deck
                 machine.addCard(deck.drawCard());
                 // Check for player eliminations based on the updated sum
-                checkAndEliminatePlayers(tableSum);
+                //checkAndEliminatePlayers(tableSum);*******
             });
             // Machine draws another card after playing
             machine.addCard(deck.drawCard());
@@ -548,7 +561,8 @@ public class GameController {
      * @param currentSum the current sum of points on the table used to determine if a player has a valid card to play
      */
     private void checkAndEliminatePlayers(int currentSum) {
-        // Ensure the players list is not empty
+        tableSum = currentSum;
+        // Ensure the player list is not empty
         if (players.isEmpty()) {
             System.out.println("No players left to eliminate.");
             return;
@@ -557,6 +571,19 @@ public class GameController {
         Iterator<Player> iterator = players.iterator();
         while (iterator.hasNext()) {
             Player player = iterator.next();
+            System.out.println("Checking player: " + player.getName());
+            System.out.println("Player hand: " + player.getHand());
+            // Eliminate the player
+            if (tableSum > player.getMaxSum()) {
+                System.out.println(player.getName() + " has been eliminated because the table sum exceeded the maximum allowed.");
+                iterator.remove();
+                if (players.size() == 1) {
+                    declareWinner(players.getFirst());
+                }else{
+                    continue; // next player
+                }
+            }
+
             // Check if the player has any playable cards based on the current sum
             if (!player.hasPlayableCard(currentSum)) {
                 System.out.println(player.getName() + " has been eliminated for not having a playable card.");
@@ -582,11 +609,16 @@ public class GameController {
             new AlertBox().showAlert(
                     "Cincuentazo Game",
                     "Winner!",
-                    winner.getName() + " is the last player standing and wins the game!"
+                    currentPlayer.getName() + " is the last player standing and wins the game!"
             );
+            // End the game and reset the parameters
+            tableSum = 0;
+            players.clear(); // Clear the list
+            deck = new Deck(90, 140); // New deck
+            deck.suffle();
+            gridPaneTable.getChildren().clear(); //clear the gridPaneTable
+            currentPlayer = players.getFirst();
         });
-        // End the game by terminating the application
-        System.exit(0);
     }
 }
 

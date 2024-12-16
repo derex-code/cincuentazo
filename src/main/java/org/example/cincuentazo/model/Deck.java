@@ -64,7 +64,7 @@ public class Deck {
      */
     public void returnCardToDeck(Cards card) {
         pokerCards.add(card); // Adds the card back to the deck
-        shuffleDeck(); // Optionally shuffle the deck after returning the card
+        shuffleDeck(); // shuffle the deck after returning the card
     }
 
     /**
