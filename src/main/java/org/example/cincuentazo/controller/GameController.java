@@ -201,7 +201,7 @@ public class GameController {
                 player.addCard(deck.drawCard());
             }
         }
-        currentPlayer = players.get(1); // Machine 1 start first
+        currentPlayer = players.get(0); // Machine 1 start first
         displayUserCards();
 
         // Code to run startGameLoop in a separate thread from the GUI thread
@@ -502,8 +502,6 @@ public class GameController {
                 // Check for player eliminations based on the updated sum
                 //checkAndEliminatePlayers(tableSum);*******
             });
-            // Machine draws another card after playing
-            machine.addCard(deck.drawCard());
         } catch (InterruptedException e) {
             // Handle interruption of the thread during sleep
             Thread.currentThread().interrupt();
