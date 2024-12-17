@@ -97,6 +97,11 @@ public class GameController {
     private final Condition userTurnEnded = turnLock.newCondition();
 
     /**
+     * Condidition to end the loop game
+     */
+    private boolean isGameRunning = true;
+
+    /**
      * Handles the action of starting the game when the "Start Game" button is clicked.
      * This method performs the following actions:
      * <ul>
@@ -294,7 +299,8 @@ public class GameController {
                 // Update the turn status for the current player
                 turnStatus(currentPlayer);
                 // Check and eliminate players if necessary (e.g., if a player goes over 50 points)
-                checkAndEliminatePlayers(tableSum);
+                System.out.println("Play user Card method");
+                //checkAndEliminatePlayers(tableSum);
             });
             // End the user's turn and notify other threads
             turnLock.lock();
@@ -371,8 +377,10 @@ public class GameController {
      */
     private void startGameLoop() {
         // Infinite loop to keep the game running
-        while (true) {
+        while (isGameRunning) {
             // Lock to ensure synchronized turn management
+            checkAndEliminatePlayers(tableSum);
+            restoreTableSume(tableSum);
             turnLock.lock();
             try {
                 // Update the turn status in the UI
@@ -412,7 +420,6 @@ public class GameController {
      */
     private void waitForUserTurn() {
         // Run the code on the JavaFX application thread
-
         Platform.runLater(() -> {
             // Show an alert to notify the user that it's their turn to play
             new AlertBox().showAlert(
@@ -442,7 +449,6 @@ public class GameController {
                 });
             }
         });
-        checkAndEliminatePlayers(tableSum);
     }
 
     /**
@@ -480,13 +486,8 @@ public class GameController {
             Platform.runLater(() -> {
                 // The machine plays a valid card, or returns null if there are no valid cards
                 Cards card = machine.playCard(tableSum);
-                if (card == null) {
-                    System.out.println(machine.getName() + " haven't a valid card to play");
-                    checkAndEliminatePlayers(tableSum);
-                    //return; // Machine can't play any valid card
-                }
-                // Log the card played by the machine
-                System.out.println(machine.getName() + " played a card: " + card.getRank() + " of " + card.getSuit());
+                checkAndEliminatePlayers(tableSum);
+                restoreTableSume(tableSum);
                 // Update the table sum after the card is played
                 tableSum += card.getValue();
 
@@ -500,7 +501,8 @@ public class GameController {
                 // The machine draws a new card from the deck
                 machine.addCard(deck.drawCard());
                 // Check for player eliminations based on the updated sum
-                //checkAndEliminatePlayers(tableSum);*******
+                System.out.println("verificatiin outside of the conditional play machineturn");
+                //checkAndEliminatePlayers(tableSum);
             });
         } catch (InterruptedException e) {
             // Handle interruption of the thread during sleep
@@ -576,7 +578,7 @@ public class GameController {
                 System.out.println(player.getName() + " has been eliminated because the table sum exceeded the maximum allowed.");
                 iterator.remove();
                 if (players.size() == 1) {
-                    declareWinner(players.getFirst());
+                    declareWinner(player.getName());
                 }else{
                     continue; // next player
                 }
@@ -590,9 +592,16 @@ public class GameController {
         }
         // If only one player is left, declare them the winner
         if (players.size() == 1) {
-            declareWinner(players.get(0));
+            declareWinner(currentPlayer.getName());
         }
     }
+
+    private int restoreTableSume(int tableSum) {
+        int lastElement = playedCards.get(playedCards.size() - 1).getValue();
+        tableSum = tableSum - lastElement;
+        return tableSum;
+    }
+
 
     /**
      * Declares the winner of the game by displaying an alert box with the winner's name.
@@ -601,7 +610,8 @@ public class GameController {
      *
      * @param winner the player who is the last one remaining in the game and is declared the winner
      */
-    private void declareWinner(Player winner) {
+    private void declareWinner(String winner) {
+        isGameRunning = false; // Stop the loop game
         Platform.runLater(() -> {
             // Show an alert box with the winner's name
             new AlertBox().showAlert(
@@ -609,14 +619,21 @@ public class GameController {
                     "Winner!",
                     currentPlayer.getName() + " is the last player standing and wins the game!"
             );
-            // End the game and reset the parameters
-            tableSum = 0;
-            players.clear(); // Clear the list
-            deck = new Deck(90, 140); // New deck
-            deck.suffle();
-            gridPaneTable.getChildren().clear(); //clear the gridPaneTable
-            currentPlayer = players.getFirst();
+            resetGame();
         });
+    }
+
+    /**
+     * Method to reset the game
+     */
+    private void resetGame(){
+        tableSum = 0;
+        players.clear();
+        deck = new Deck(90, 140);
+        deck.suffle();
+        gridPaneTable.getChildren().clear();
+        userGame.getChildren().clear();
+        tableSum = 0;
     }
 }
 
