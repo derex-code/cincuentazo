@@ -99,7 +99,7 @@ public class GameController {
     /**
      * Condidition to end the loop game
      */
-    private boolean isGameRunning = true;
+    private volatile boolean isGameRunning = true;
 
     /**
      * Handles the action of starting the game when the "Start Game" button is clicked.
@@ -377,9 +377,10 @@ public class GameController {
      */
     private void startGameLoop() {
         // Infinite loop to keep the game running
+        System.out.println("Start Game Loop Running");
         while (isGameRunning) {
             // Lock to ensure synchronized turn management
-            checkAndEliminatePlayers(tableSum);
+            checkAndEliminatePlayers();
             restoreTableSume(tableSum);
             turnLock.lock();
             try {
@@ -399,6 +400,8 @@ public class GameController {
                     // If it's a machine player's turn, let the machine play automatically
                     playMachineTurn(currentPlayer);
                 }
+                displayUserCards();
+                nextPlayer();
             } catch (InterruptedException e) {
                 // Handle interruption of the thread
                 Thread.currentThread().interrupt();
@@ -407,7 +410,8 @@ public class GameController {
                 turnLock.unlock();
             }
             // Move to the next player
-            nextPlayer();
+//            displayUserCards();
+//            nextPlayer();
         }
     }
 
@@ -486,7 +490,7 @@ public class GameController {
             Platform.runLater(() -> {
                 // The machine plays a valid card, or returns null if there are no valid cards
                 Cards card = machine.playCard(tableSum);
-                checkAndEliminatePlayers(tableSum);
+                //checkAndEliminatePlayers(tableSum);************************************************
                 restoreTableSume(tableSum);
                 // Update the table sum after the card is played
                 tableSum += card.getValue();
@@ -501,7 +505,7 @@ public class GameController {
                 // The machine draws a new card from the deck
                 machine.addCard(deck.drawCard());
                 // Check for player eliminations based on the updated sum
-                System.out.println("verificatiin outside of the conditional play machineturn");
+                System.out.println("verificatiin outside of the conditional play machine turn");
                 //checkAndEliminatePlayers(tableSum);
             });
         } catch (InterruptedException e) {
@@ -557,11 +561,9 @@ public class GameController {
      * This method checks if any player does not have a valid card to play based on the current sum of points on the table.
      * If a player does not have any playable cards, they are eliminated from the game.
      * If only one player remains, that player is declared the winner.
-     *
-     * @param currentSum the current sum of points on the table used to determine if a player has a valid card to play
      */
-    private void checkAndEliminatePlayers(int currentSum) {
-        tableSum = currentSum;
+    private void checkAndEliminatePlayers() {
+        int currentSum = tableSum;
         // Ensure the player list is not empty
         if (players.isEmpty()) {
             System.out.println("No players left to eliminate.");
@@ -597,8 +599,10 @@ public class GameController {
     }
 
     private int restoreTableSume(int tableSum) {
-        int lastElement = playedCards.get(playedCards.size() - 1).getValue();
-        tableSum = tableSum - lastElement;
+        if (!playedCards.isEmpty()){
+            int lastElement = playedCards.get(playedCards.size() - 1).getValue();
+            tableSum = tableSum - lastElement;
+        }
         return tableSum;
     }
 
@@ -619,6 +623,7 @@ public class GameController {
                     "Winner!",
                     currentPlayer.getName() + " is the last player standing and wins the game!"
             );
+            isGameRunning = false;
             resetGame();
         });
     }
@@ -634,6 +639,7 @@ public class GameController {
         gridPaneTable.getChildren().clear();
         userGame.getChildren().clear();
         tableSum = 0;
+        isGameRunning = false;
     }
 }
 
